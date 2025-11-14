@@ -1,5 +1,4 @@
 /code/vendor/
 /db/
 /.env
-/code/src/config/config.ini
 /read_me.txt
