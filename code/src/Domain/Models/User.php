@@ -108,14 +108,16 @@ class User {
         return $result;
     }
 
-    public function setParamsFromRequestData(): void {
+    public function setParamsFromRequestData(bool $isNew): void {
         $this->userName = $_POST['name'];
         $this->userLastName = $_POST['lastname'];
         if(!empty($_POST['birthday'])) {
             $this->setBirthdayFromString($_POST['birthday']); 
         }
-        $this->userLogin = $_POST['login']; 
-        $this->userPasswordHash = Auth::getPasswordHash($_POST['password']);
+        $this->userLogin = $_POST['login'];
+        if($isNew || (!empty($_POST['password']) && !$isNew)) {
+            $this->userPasswordHash = Auth::getPasswordHash($_POST['password']);
+        }
     }
     // htmlspecialchars($_POST['name']);
 
@@ -199,8 +201,8 @@ class User {
             
     public function updateSelfInStorage($id): void {
         $sql = "UPDATE users SET user_name = :user_name, user_lastname = :user_lastname, 
-            user_birthday_timestamp = :birthdate_timestamp, login = :user_login, 
-            password_hash = :password_hash WHERE id_user = :id_user";
+            user_birthday_timestamp = :birthdate_timestamp, login = :user_login 
+            WHERE id_user = :id_user";
 
         $handler = Application::$storage->get()->prepare($sql);
         $handler->execute([
@@ -208,10 +210,20 @@ class User {
             'user_lastname' => $this->userLastName,
             'birthdate_timestamp' => $this->userBirthday,
             'user_login' => $this->userLogin,
-            'password_hash' => $this->userPasswordHash,
             'id_user' => $id
-
         ]);
+    }
+
+    public function updateSelfPasswordInStorage($id, bool $isEmpty): void {
+        if(!$isEmpty) {
+            $sql = "UPDATE users SET password_hash = :password_hash 
+                WHERE id_user = :id_user";
+            $handler = Application::$storage->get()->prepare($sql);
+            $handler->execute([
+                'password_hash' => $this->userPasswordHash,
+                'id_user' => $id
+            ]);
+        }  
     }
 
     public static function deleteFromStorage(int $user_id) : void {

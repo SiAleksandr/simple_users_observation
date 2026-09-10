@@ -72,11 +72,12 @@ class UserController extends AbstractController {
             $message = "Ошибка. Поступил некорректный ID пользователя";
 
             $user = new User();
-            $user->setParamsFromRequestData();
+            $user->setParamsFromRequestData($new);
 
             if(!$new) {
                 if(User::exists($_POST['id'])) {
                     $user->updateSelfInStorage($_POST['id']);
+                    $user->updateSelfPasswordInStorage($_POST['id'], empty($_POST['password']));
 
                     $message = "Обновлён пользователь с ID = " . $_POST['id'];
                 }
